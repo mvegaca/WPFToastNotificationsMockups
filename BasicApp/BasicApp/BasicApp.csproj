@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <RootNamespace>BasicApp</RootNamespace>
+    <UseWPF>true</UseWPF>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Assets\DefaultIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MahApps.Metro" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.19041.1" />
+    <PackageReference Include="OSVersionHelper" Version="1.0.11" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BasicApp.Core\BasicApp.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\DefaultIcon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
