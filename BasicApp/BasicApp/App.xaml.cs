@@ -1,8 +1,12 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-
+using BasicApp.Activation;
+using BasicApp.Contracts.Activation;
 using BasicApp.Contracts.Services;
 using BasicApp.Contracts.Views;
 using BasicApp.Core.Contracts.Services;
@@ -15,6 +19,7 @@ using BasicApp.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Toolkit.Uwp.Notifications;
 
 namespace BasicApp
 {
@@ -27,15 +32,41 @@ namespace BasicApp
         {
         }
 
+        public T GetService<T>() where T : class
+            => _host.Services.GetService(typeof(T)) as T;
+
+        public async Task StartAsync()
+            => await _host.StartAsync();
+
         private async void OnStartup(object sender, StartupEventArgs e)
         {
+            // Register AUMID, COM server, and activator
+            DesktopNotificationManagerCompat.RegisterAumidAndComServer<ToastNotificationActivator>("BasicApp");
+            DesktopNotificationManagerCompat.RegisterActivator<ToastNotificationActivator>();
+
+            // TODO: Register arguments you want to use on App initialization
+            var activationArgs = new Dictionary<string, string>
+            {
+                { ToastNotificationActivationHandler.ActivationArguments, string.Empty},
+            };
+
             var appLocation = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
             // For more information about .NET generic host see  https://docs.microsoft.com/aspnet/core/fundamentals/host/generic-host?view=aspnetcore-3.0
             _host = Host.CreateDefaultBuilder(e.Args)
-                    .ConfigureAppConfiguration(c => c.SetBasePath(appLocation))
+                    .ConfigureAppConfiguration(c =>
+                    {
+                        c.SetBasePath(appLocation);
+                        c.AddInMemoryCollection(activationArgs);
+                    })
                     .ConfigureServices(ConfigureServices)
                     .Build();
+
+            if (e.Args.Contains(DesktopNotificationManagerCompat.ToastActivatedLaunchArg))
+            {
+                // ToastNotificationActivator code will run after this completes and will show a window if necessary.
+                return;
+            }
 
             await _host.StartAsync();
         }
@@ -52,6 +83,9 @@ namespace BasicApp
                 client.BaseAddress = new System.Uri("https://graph.microsoft.com/v1.0/");
             });
 
+            // Activation Handlers
+            services.AddSingleton<IActivationHandler, ToastNotificationActivationHandler>();
+
             // Core Services
             services.AddSingleton<IMicrosoftGraphService, MicrosoftGraphService>();
             services.AddSingleton<IIdentityService, IdentityService>();
@@ -64,6 +98,7 @@ namespace BasicApp
             services.AddSingleton<IThemeSelectorService, ThemeSelectorService>();
             services.AddSingleton<IPageService, PageService>();
             services.AddSingleton<INavigationService, NavigationService>();
+            services.AddSingleton<IToastNotificationsService, ToastNotificationsService>();
 
             // Views and ViewModels
             services.AddTransient<IShellWindow, ShellWindow>();
