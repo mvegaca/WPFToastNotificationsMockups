@@ -7,7 +7,7 @@
   xmlns:genTemplate="http://schemas.microsoft.com/appx/developer/windowsTemplateStudio"
   xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
   xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
-  IgnorableNamespaces="uap rescap genTemplate">
+  IgnorableNamespaces="uap rescap genTemplate com desktop">
 
   <Identity
     Name="77136496-1E40-4124-8D92-8152603278FF"
