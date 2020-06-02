@@ -1,10 +1,10 @@
-﻿using System;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Windows.Controls;
 
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
-
+using LightApp.Activation;
+using LightApp.Contracts.Activation;
 using LightApp.Contracts.Services;
 using LightApp.Contracts.Views;
 using LightApp.Core.Contracts.Services;
@@ -40,6 +40,12 @@ namespace LightApp.ViewModels
             // App Host
             SimpleIoc.Default.Register<IApplicationHostService, ApplicationHostService>();
 
+            // Activation Handlers
+            SimpleIoc.Default.Register<ToastNotificationActivationHandler>();
+            SimpleIoc.Default.Register<SampleActivationHandler>();
+            SimpleIoc.Default.Register<IActivationHandler>(() => SimpleIoc.Default.GetInstance<ToastNotificationActivationHandler>(), "toast");
+            SimpleIoc.Default.Register<IActivationHandler>(() => SimpleIoc.Default.GetInstance<SampleActivationHandler>(), "sample");
+
             // Core Services
             SimpleIoc.Default.Register<IMicrosoftGraphService, MicrosoftGraphService>();
             SimpleIoc.Default.Register<IIdentityCacheService, IdentityCacheService>();
@@ -55,6 +61,7 @@ namespace LightApp.ViewModels
             SimpleIoc.Default.Register<IThemeSelectorService, ThemeSelectorService>();
             SimpleIoc.Default.Register<IPageService, PageService>();
             SimpleIoc.Default.Register<INavigationService, NavigationService>();
+            SimpleIoc.Default.Register<IToastNotificationsService, ToastNotificationsService>();                       
 
             // Window
             SimpleIoc.Default.Register<ILogInWindow, LogInWindow>();

@@ -1,14 +1,18 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
 using GalaSoft.MvvmLight.Ioc;
-
+using LightApp.Activation;
 using LightApp.Contracts.Services;
 using LightApp.ViewModels;
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Toolkit.Uwp.Notifications;
 
 namespace LightApp
 {
@@ -24,20 +28,40 @@ namespace LightApp
         {
         }
 
+        public async Task StartAsync()
+            => await _host.StartAsync();
+
         private async void OnStartup(object sender, StartupEventArgs e)
         {
+            // Register AUMID, COM server, and activator
+            DesktopNotificationManagerCompat.RegisterAumidAndComServer<ToastNotificationActivator>("LightApp");
+            DesktopNotificationManagerCompat.RegisterActivator<ToastNotificationActivator>();
+
             AddConfiguration(e.Args);
             _host = SimpleIoc.Default.GetInstance<IApplicationHostService>();
+            if (e.Args.Contains(DesktopNotificationManagerCompat.ToastActivatedLaunchArg))
+            {
+                // ToastNotificationActivator code will run after this completes and will show a window if necessary.
+                return;
+            }
+
             await _host.StartAsync();
         }
 
         private void AddConfiguration(string[] args)
         {
+            // TODO: Register arguments you want to use on App initialization
+            var activationArgs = new Dictionary<string, string>
+            {
+                { ToastNotificationActivationHandler.ActivationArguments, string.Empty},
+            };
+
             var appLocation = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(appLocation)
                 .AddCommandLine(args)
+                .AddInMemoryCollection(activationArgs)
                 .AddJsonFile("appsettings.json")
                 .Build();
 
