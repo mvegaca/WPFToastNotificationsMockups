@@ -34,10 +34,8 @@ namespace BasicApp.Activation
         {
             if (App.Current.Windows.OfType<IShellWindow>().Count() == 0)
             {
-                var shellWindow = _serviceProvider.GetService(typeof(IShellWindow)) as IShellWindow;
-                _navigationService.Initialize(shellWindow.GetNavigationFrame());
-                shellWindow.ShowWindow();
-                _navigationService.NavigateTo(typeof(SettingsViewModel).FullName);
+                // Here you can get an instance of the ShellWindow and choose navigate
+                // to a specific page depending on the toast notification arguments
             }
             else
             {
@@ -46,8 +44,6 @@ namespace BasicApp.Activation
                 {
                     App.Current.MainWindow.WindowState = WindowState.Normal;
                 }
-
-                _navigationService.NavigateTo(typeof(SettingsViewModel).FullName);
             }
 
             await Task.CompletedTask;

@@ -2,11 +2,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using GalaSoft.MvvmLight.Ioc;
 using LightApp.Contracts.Activation;
 using LightApp.Contracts.Services;
 using LightApp.Contracts.Views;
-using LightApp.ViewModels;
 using Microsoft.Extensions.Configuration;
 
 namespace LightApp.Activation
@@ -33,10 +31,8 @@ namespace LightApp.Activation
         {
             if (App.Current.Windows.OfType<IShellWindow>().Count() == 0)
             {
-                var shellWindow = SimpleIoc.Default.GetInstance<IShellWindow>();
-                _navigationService.Initialize(shellWindow.GetNavigationFrame());
-                shellWindow.ShowWindow();
-                _navigationService.NavigateTo(typeof(SettingsViewModel).FullName);
+                // Here you can get an instance of the ShellWindow and choose navigate
+                // to a specific page depending on the toast notification arguments
             }
             else
             {
@@ -45,8 +41,6 @@ namespace LightApp.Activation
                 {
                     App.Current.MainWindow.WindowState = WindowState.Normal;
                 }
-
-                _navigationService.NavigateTo(typeof(SettingsViewModel).FullName);
             }
 
             await Task.CompletedTask;
