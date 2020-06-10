@@ -10,7 +10,7 @@ namespace LightApp.Activation
     // The GUID CLSID must be unique to your app. Create a new GUID if copying this code.
     [ClassInterface(ClassInterfaceType.None)]
     [ComSourceInterfaces(typeof(INotificationActivationCallback))]
-    [Guid("50cfb67f-bc8a-477d-938c-93cf6bfb3320"), ComVisible(true)]
+    [Guid("FBF33BA9-22C6-4568-9C4C-BA690BC06904"), ComVisible(true)]
     public class ToastNotificationActivator : NotificationActivator
     {
         public override async void OnActivated(string arguments, NotificationUserInput userInput, string appUserModelId)
