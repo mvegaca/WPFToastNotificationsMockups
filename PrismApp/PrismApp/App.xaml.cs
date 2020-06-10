@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Globalization;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
@@ -8,12 +9,11 @@ using System.Windows.Threading;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using Microsoft.Toolkit.Uwp.Notifications;
 using Prism.Ioc;
-using Prism.Mvvm;
 using Prism.Regions;
 using Prism.Unity;
-
+using PrismApp.Activation;
 using PrismApp.Constants;
 using PrismApp.Contracts.Services;
 using PrismApp.Core.Contracts.Services;
@@ -27,6 +27,8 @@ namespace PrismApp
 {
     public partial class App : PrismApplication
     {
+        public const string ToastNotificationActivationArguments = "ToastNotificationActivationArguments";
+
         private LogInWindow _logInWindow;
 
         private string[] _startUpArgs;
@@ -35,11 +37,20 @@ namespace PrismApp
         {
         }
 
+        public T Resolve<T>() where T : class
+            => Container.Resolve<T>();
+
         protected override Window CreateShell()
             => Container.Resolve<ShellWindow>();
 
         protected override async void OnInitialized()
         {
+            // Read more about sending local toast notifications from desktop C# apps
+            // https://docs.microsoft.com/windows/uwp/design/shell/tiles-and-notifications/send-local-toast-desktop
+            //
+            // Register AUMID, COM server, and activator
+            DesktopNotificationManagerCompat.RegisterAumidAndComServer<ToastNotificationActivator>("PrismApp");
+            DesktopNotificationManagerCompat.RegisterActivator<ToastNotificationActivator>();
             var persistAndRestoreService = Container.Resolve<IPersistAndRestoreService>();
             persistAndRestoreService.RestoreData();
 
@@ -49,16 +60,25 @@ namespace PrismApp
             var userDataService = Container.Resolve<IUserDataService>();
             userDataService.Initialize();
 
-            var config = Container.Resolve<AppConfig>();
+            var appConfig = Container.Resolve<AppConfig>();
             var identityService = Container.Resolve<IIdentityService>();
-            identityService.InitializeWithAadAndPersonalMsAccounts(config.IdentityClientId, "http://localhost");
+            identityService.InitializeWithAadAndPersonalMsAccounts(appConfig.IdentityClientId, "http://localhost");
             identityService.LoggedIn += OnLoggedIn;
             identityService.LoggedOut += OnLoggedOut;
+
+            var toastNotificationsService = Container.Resolve<IToastNotificationsService>();
+            toastNotificationsService.ShowToastNotificationSample();
 
             var silentLoginSuccess = await identityService.AcquireTokenSilentAsync();
             if (!silentLoginSuccess || !identityService.IsAuthorized())
             {
                 ShowLogInWindow();
+                return;
+            }
+
+            if (_startUpArgs.Contains(DesktopNotificationManagerCompat.ToastActivatedLaunchArg))
+            {
+                // ToastNotificationActivator code will run after this completes and will show a window if necessary.
                 return;
             }
 
@@ -119,6 +139,7 @@ namespace PrismApp
             containerRegistry.Register<ISystemService, SystemService>();
             containerRegistry.Register<IPersistAndRestoreService, PersistAndRestoreService>();
             containerRegistry.Register<IThemeSelectorService, ThemeSelectorService>();
+            containerRegistry.RegisterSingleton<IToastNotificationsService, ToastNotificationsService>();
 
             // Views
             containerRegistry.RegisterForNavigation<SettingsPage, SettingsViewModel>(PageKeys.Settings);
@@ -138,11 +159,17 @@ namespace PrismApp
 
         private IConfiguration BuildConfiguration()
         {
+            // TODO: Register arguments you want to use on App initialization
+            var activationArgs = new Dictionary<string, string>
+            {
+                { ToastNotificationActivationArguments, string.Empty},
+            };
             var appLocation = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             return new ConfigurationBuilder()
                 .SetBasePath(appLocation)
                 .AddJsonFile("appsettings.json")
                 .AddCommandLine(_startUpArgs)
+                .AddInMemoryCollection(activationArgs)
                 .Build();
         }
 
