@@ -40,6 +40,9 @@ namespace BasicApp
 
         private async void OnStartup(object sender, StartupEventArgs e)
         {
+            // Read more about sending local toast notifications from desktop C# apps
+            // https://docs.microsoft.com/windows/uwp/design/shell/tiles-and-notifications/send-local-toast-desktop
+            //
             // Register AUMID, COM server, and activator
             DesktopNotificationManagerCompat.RegisterAumidAndComServer<ToastNotificationActivator>("BasicApp");
             DesktopNotificationManagerCompat.RegisterActivator<ToastNotificationActivator>();
