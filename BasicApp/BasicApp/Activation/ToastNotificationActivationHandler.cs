@@ -5,7 +5,6 @@ using System.Windows;
 using BasicApp.Contracts.Activation;
 using BasicApp.Contracts.Services;
 using BasicApp.Contracts.Views;
-using BasicApp.ViewModels;
 using Microsoft.Extensions.Configuration;
 
 namespace BasicApp.Activation

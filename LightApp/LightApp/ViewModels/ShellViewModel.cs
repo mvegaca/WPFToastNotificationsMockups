@@ -16,7 +16,6 @@ namespace LightApp.ViewModels
     public class ShellViewModel : ViewModelBase
     {
         private readonly INavigationService _navigationService;
-        private readonly IUserDataService _userDataService;
         private HamburgerMenuItem _selectedMenuItem;
         private HamburgerMenuItem _selectedOptionsMenuItem;
         private RelayCommand _goBackCommand;
@@ -58,41 +57,19 @@ namespace LightApp.ViewModels
 
         public ICommand UnloadedCommand => _unloadedCommand ?? (_unloadedCommand = new RelayCommand(OnUnloaded));
 
-        public ShellViewModel(INavigationService navigationService, IUserDataService userDataService)
+        public ShellViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
-            _navigationService.Navigated += OnNavigated;
-            _userDataService = userDataService;
-            _userDataService.UserDataUpdated += OnUserDataUpdated;
         }
 
         private void OnLoaded()
         {
-            var user = _userDataService.GetUser();
-            var userMenuItem = new HamburgerMenuImageItem()
-            {
-                Thumbnail = user.Photo,
-                Label = user.Name,
-                Command = new RelayCommand(OnUserItemSelected)
-            };
-
-            OptionMenuItems.Insert(0, userMenuItem);
+            _navigationService.Navigated += OnNavigated;
         }
 
         private void OnUnloaded()
         {
             _navigationService.Navigated -= OnNavigated;
-            _userDataService.UserDataUpdated -= OnUserDataUpdated;
-        }
-
-        private void OnUserDataUpdated(object sender, UserViewModel user)
-        {
-            var userMenuItem = OptionMenuItems.OfType<HamburgerMenuImageItem>().FirstOrDefault();
-            if (userMenuItem != null)
-            {
-                userMenuItem.Label = user.Name;
-                userMenuItem.Thumbnail = user.Photo;
-            }
         }
 
         private bool CanGoBack()

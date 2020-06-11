@@ -80,18 +80,11 @@ namespace BasicApp
 
             // App Host
             services.AddHostedService<ApplicationHostService>();
-            services.AddSingleton<IIdentityCacheService, IdentityCacheService>();
-            services.AddHttpClient("msgraph", client =>
-            {
-                client.BaseAddress = new System.Uri("https://graph.microsoft.com/v1.0/");
-            });
 
             // Activation Handlers
             services.AddSingleton<IActivationHandler, ToastNotificationActivationHandler>();
 
             // Core Services
-            services.AddSingleton<IMicrosoftGraphService, MicrosoftGraphService>();
-            services.AddSingleton<IIdentityService, IdentityService>();
             services.AddSingleton<IFileService, FileService>();
 
             // Services
@@ -112,10 +105,6 @@ namespace BasicApp
 
             services.AddTransient<SettingsViewModel>();
             services.AddTransient<SettingsPage>();
-
-            services.AddSingleton<IUserDataService, UserDataService>();
-            services.AddTransient<ILogInWindow, LogInWindow>();
-            services.AddTransient<LogInViewModel>();
 
             // Configuration
             services.Configure<AppConfig>(context.Configuration.GetSection(nameof(AppConfig)));

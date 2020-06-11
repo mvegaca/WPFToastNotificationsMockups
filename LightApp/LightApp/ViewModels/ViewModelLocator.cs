@@ -1,5 +1,4 @@
-﻿using System.Net.Http;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
@@ -14,7 +13,6 @@ using LightApp.Services;
 using LightApp.Views;
 
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace LightApp.ViewModels
 {
@@ -32,9 +30,6 @@ namespace LightApp.ViewModels
         public SettingsViewModel SettingsViewModel
             => SimpleIoc.Default.GetInstance<SettingsViewModel>();
 
-        public LogInViewModel LogInViewModel
-            => SimpleIoc.Default.GetInstance<LogInViewModel>();
-
         public ViewModelLocator()
         {
             // App Host
@@ -42,21 +37,14 @@ namespace LightApp.ViewModels
 
             // Activation Handlers
             SimpleIoc.Default.Register<ToastNotificationActivationHandler>();
-            SimpleIoc.Default.Register<SampleActivationHandler>();
             SimpleIoc.Default.Register<IActivationHandler>(() => SimpleIoc.Default.GetInstance<ToastNotificationActivationHandler>(), "toast");
-            SimpleIoc.Default.Register<IActivationHandler>(() => SimpleIoc.Default.GetInstance<SampleActivationHandler>(), "sample");
 
             // Core Services
-            SimpleIoc.Default.Register<IMicrosoftGraphService, MicrosoftGraphService>();
-            SimpleIoc.Default.Register<IIdentityCacheService, IdentityCacheService>();
-            SimpleIoc.Default.Register<IIdentityService, IdentityService>();
-            SimpleIoc.Default.Register(() => GetHttpClientFactory());
             SimpleIoc.Default.Register<IApplicationInfoService, ApplicationInfoService>();
             SimpleIoc.Default.Register<ISystemService, SystemService>();
             SimpleIoc.Default.Register<IFileService, FileService>();
 
             // Services
-            SimpleIoc.Default.Register<IUserDataService, UserDataService>();
             SimpleIoc.Default.Register<IPersistAndRestoreService, PersistAndRestoreService>();
             SimpleIoc.Default.Register<IThemeSelectorService, ThemeSelectorService>();
             SimpleIoc.Default.Register<IPageService, PageService>();
@@ -64,8 +52,6 @@ namespace LightApp.ViewModels
             SimpleIoc.Default.Register<IToastNotificationsService, ToastNotificationsService>();                       
 
             // Window
-            SimpleIoc.Default.Register<ILogInWindow, LogInWindow>();
-            SimpleIoc.Default.Register<LogInViewModel>();
             SimpleIoc.Default.Register<IShellWindow, ShellWindow>();
             SimpleIoc.Default.Register<ShellViewModel>();
 
@@ -92,17 +78,6 @@ namespace LightApp.ViewModels
             // Register configurations to IoC
             SimpleIoc.Default.Register(() => configuration);
             SimpleIoc.Default.Register(() => appConfig);
-        }
-
-        private IHttpClientFactory GetHttpClientFactory()
-        {
-            var services = new ServiceCollection();
-            services.AddHttpClient("msgraph", client =>
-            {
-                client.BaseAddress = new System.Uri("https://graph.microsoft.com/v1.0/");
-            });
-
-            return services.BuildServiceProvider().GetRequiredService<IHttpClientFactory>();
         }
     }
 }

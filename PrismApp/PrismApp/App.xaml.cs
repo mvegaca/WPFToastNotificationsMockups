@@ -29,8 +29,6 @@ namespace PrismApp
     {
         public const string ToastNotificationActivationArguments = "ToastNotificationActivationArguments";
 
-        private LogInWindow _logInWindow;
-
         private string[] _startUpArgs;
 
         public App()
@@ -57,24 +55,8 @@ namespace PrismApp
             var themeSelectorService = Container.Resolve<IThemeSelectorService>();
             themeSelectorService.SetTheme();
 
-            var userDataService = Container.Resolve<IUserDataService>();
-            userDataService.Initialize();
-
-            var appConfig = Container.Resolve<AppConfig>();
-            var identityService = Container.Resolve<IIdentityService>();
-            identityService.InitializeWithAadAndPersonalMsAccounts(appConfig.IdentityClientId, "http://localhost");
-            identityService.LoggedIn += OnLoggedIn;
-            identityService.LoggedOut += OnLoggedOut;
-
             var toastNotificationsService = Container.Resolve<IToastNotificationsService>();
             toastNotificationsService.ShowToastNotificationSample();
-
-            var silentLoginSuccess = await identityService.AcquireTokenSilentAsync();
-            if (!silentLoginSuccess || !identityService.IsAuthorized())
-            {
-                ShowLogInWindow();
-                return;
-            }
 
             if (_startUpArgs.Contains(DesktopNotificationManagerCompat.ToastActivatedLaunchArg))
             {
@@ -82,31 +64,8 @@ namespace PrismApp
                 return;
             }
 
+            await Task.CompletedTask;
             base.OnInitialized();
-        }
-
-        private void OnLoggedIn(object sender, EventArgs e)
-        {
-            if (!(Application.Current.MainWindow is ShellWindow))
-            {
-                Application.Current.MainWindow = CreateShell();
-                RegionManager.UpdateRegions();
-            }
-
-            Application.Current.MainWindow.Show();
-            _logInWindow.Close();
-        }
-
-        private void OnLoggedOut(object sender, EventArgs e)
-        {
-            ShowLogInWindow();
-            Application.Current.MainWindow.Close();
-        }
-
-        private void ShowLogInWindow()
-        {
-            _logInWindow = Container.Resolve<LogInWindow>();
-            _logInWindow.Show();
         }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -118,23 +77,10 @@ namespace PrismApp
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
             // Core Services
-            containerRegistry.Register<IMicrosoftGraphService, MicrosoftGraphService>();
-
             PrismContainerExtension.Create(Container.GetContainer());
-            PrismContainerExtension.Current.RegisterServices(s =>
-            {
-                s.AddHttpClient("msgraph", client =>
-                {
-                    client.BaseAddress = new System.Uri("https://graph.microsoft.com/v1.0/");
-                });
-            });
-
-            containerRegistry.Register<IIdentityCacheService, IdentityCacheService>();
-            containerRegistry.RegisterSingleton<IIdentityService, IdentityService>();
             containerRegistry.Register<IFileService, FileService>();
 
             // App Services
-            containerRegistry.RegisterSingleton<IUserDataService, UserDataService>();
             containerRegistry.Register<IApplicationInfoService, ApplicationInfoService>();
             containerRegistry.Register<ISystemService, SystemService>();
             containerRegistry.Register<IPersistAndRestoreService, PersistAndRestoreService>();

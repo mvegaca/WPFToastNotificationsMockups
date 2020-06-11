@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 
@@ -10,7 +9,6 @@ using Prism.Mvvm;
 using Prism.Regions;
 
 using PrismApp.Constants;
-using PrismApp.Contracts.Services;
 using PrismApp.Properties;
 
 namespace PrismApp.ViewModels
@@ -18,7 +16,6 @@ namespace PrismApp.ViewModels
     public class ShellViewModel : BindableBase
     {
         private readonly IRegionManager _regionManager;
-        private readonly IUserDataService _userDataService;
         private IRegionNavigationService _navigationService;
         private HamburgerMenuItem _selectedMenuItem;
         private HamburgerMenuItem _selectedOptionsMenuItem;
@@ -61,10 +58,9 @@ namespace PrismApp.ViewModels
 
         public ICommand OptionsMenuItemInvokedCommand => _optionsMenuItemInvokedCommand ?? (_optionsMenuItemInvokedCommand = new DelegateCommand(OnOptionsMenuItemInvoked));
 
-        public ShellViewModel(IRegionManager regionManager, IUserDataService userDataService)
+        public ShellViewModel(IRegionManager regionManager)
         {
             _regionManager = regionManager;
-            _userDataService = userDataService;
         }
 
         private void OnLoaded()
@@ -72,23 +68,12 @@ namespace PrismApp.ViewModels
             _navigationService = _regionManager.Regions[Regions.Main].NavigationService;
             _navigationService.Navigated += OnNavigated;
             SelectedMenuItem = MenuItems.First();
-            _userDataService.UserDataUpdated += OnUserDataUpdated;
-            var user = _userDataService.GetUser();
-            var userMenuItem = new HamburgerMenuImageItem()
-            {
-                Thumbnail = user.Photo,
-                Label = user.Name,
-                Command = new DelegateCommand(OnUserItemSelected)
-            };
-
-            OptionMenuItems.Insert(0, userMenuItem);
         }
 
         private void OnUnloaded()
         {
             _navigationService.Navigated -= OnNavigated;
             _regionManager.Regions.Remove(Regions.Main);
-            _userDataService.UserDataUpdated -= OnUserDataUpdated;
         }
 
         private bool CanGoBack()
@@ -102,19 +87,6 @@ namespace PrismApp.ViewModels
 
         private void OnOptionsMenuItemInvoked()
             => RequestNavigate(SelectedOptionsMenuItem.Tag?.ToString());
-
-        private void OnUserDataUpdated(object sender, UserViewModel user)
-        {
-            var userMenuItem = OptionMenuItems.OfType<HamburgerMenuImageItem>().FirstOrDefault();
-            if (userMenuItem != null)
-            {
-                userMenuItem.Label = user.Name;
-                userMenuItem.Thumbnail = user.Photo;
-            }
-        }
-
-        private void OnUserItemSelected()
-            => RequestNavigate(PageKeys.Settings);
 
         private void RequestNavigate(string target)
         {

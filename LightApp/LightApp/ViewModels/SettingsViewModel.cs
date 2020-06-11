@@ -15,17 +15,13 @@ namespace LightApp.ViewModels
     public class SettingsViewModel : ViewModelBase, INavigationAware
     {
         private readonly AppConfig _config;
-        private readonly IUserDataService _userDataService;
-        private readonly IIdentityService _identityService;
         private readonly IThemeSelectorService _themeSelectorService;
         private readonly ISystemService _systemService;
         private readonly IApplicationInfoService _applicationInfoService;
         private AppTheme _theme;
         private string _versionDescription;
-        private UserViewModel _user;
         private ICommand _setThemeCommand;
         private ICommand _privacyStatementCommand;
-        private ICommand _logOutCommand;
 
         public AppTheme Theme
         {
@@ -37,48 +33,28 @@ namespace LightApp.ViewModels
         {
             get { return _versionDescription; }
             set { Set(ref _versionDescription, value); }
-        }
-
-        public UserViewModel User
-        {
-            get { return _user; }
-            set { Set(ref _user, value); }
-        }
+        }        
 
         public ICommand SetThemeCommand => _setThemeCommand ?? (_setThemeCommand = new RelayCommand<string>(OnSetTheme));
 
         public ICommand PrivacyStatementCommand => _privacyStatementCommand ?? (_privacyStatementCommand = new RelayCommand(OnPrivacyStatement));
 
-        public ICommand LogOutCommand => _logOutCommand ?? (_logOutCommand = new RelayCommand(OnLogOut));
-
-        public SettingsViewModel(AppConfig config, IThemeSelectorService themeSelectorService, ISystemService systemService, IApplicationInfoService applicationInfoService, IUserDataService userDataService, IIdentityService identityService)
+        public SettingsViewModel(AppConfig config, IThemeSelectorService themeSelectorService, ISystemService systemService, IApplicationInfoService applicationInfoService)
         {
             _config = config;
             _themeSelectorService = themeSelectorService;
             _systemService = systemService;
             _applicationInfoService = applicationInfoService;
-            _userDataService = userDataService;
-            _identityService = identityService;
         }
 
         public void OnNavigatedTo(object parameter)
         {
             VersionDescription = $"LightApp - {_applicationInfoService.GetVersion()}";
             Theme = _themeSelectorService.GetCurrentTheme();
-            _identityService.LoggedOut += OnLoggedOut;
-            _userDataService.UserDataUpdated += OnUserDataUpdated;
-            User = _userDataService.GetUser();
         }
 
         public void OnNavigatedFrom()
         {
-            UnregisterEvents();
-        }
-
-        private void UnregisterEvents()
-        {
-            _identityService.LoggedOut -= OnLoggedOut;
-            _userDataService.UserDataUpdated -= OnUserDataUpdated;
         }
 
         private void OnSetTheme(string themeName)
@@ -89,20 +65,5 @@ namespace LightApp.ViewModels
 
         private void OnPrivacyStatement()
             => _systemService.OpenInWebBrowser(_config.PrivacyStatement);
-
-        private async void OnLogOut()
-        {
-            await _identityService.LogoutAsync();
-        }
-
-        private void OnUserDataUpdated(object sender, UserViewModel userData)
-        {
-            User = userData;
-        }
-
-        private void OnLoggedOut(object sender, EventArgs e)
-        {
-            UnregisterEvents();
-        }
     }
 }

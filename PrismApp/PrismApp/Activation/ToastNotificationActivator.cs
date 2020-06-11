@@ -4,10 +4,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Toolkit.Uwp.Notifications;
-using Prism.Regions;
-using PrismApp.Constants;
-using PrismApp.Core.Contracts.Services;
-using PrismApp.Models;
 
 namespace PrismApp.Activation
 {
@@ -27,6 +23,11 @@ namespace PrismApp.Activation
                 config[App.ToastNotificationActivationArguments] = arguments;
 
                 Application.Current.MainWindow.Show();
+                App.Current.MainWindow.Activate();
+                if (App.Current.MainWindow.WindowState == WindowState.Minimized)
+                {
+                    App.Current.MainWindow.WindowState = WindowState.Normal;
+                }
                 await Task.CompletedTask;
             });
         }
